@@ -13,7 +13,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(path = "/api/categories")
 public class CategoryController {
-    private CategoryCRUDService service;
+    private final CategoryCRUDService service;
 
     public CategoryController(CategoryCRUDService service) {
         this.service = service;
