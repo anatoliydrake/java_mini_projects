@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.*;
 
 @RestController
 @RequestMapping(path = "/api/news")
+@Tag(name = "news", description = "Operations related to news management")
 public class NewsController {
     private final NewsCRUDService service;
 
@@ -80,7 +82,7 @@ public class NewsController {
     @ApiResponse(responseCode = "201", description = "Created",
             content = @Content(mediaType = "application/json", schema = @Schema(implementation = NewsDto.class)))
     public ResponseEntity<NewsDto> createNews(@io.swagger.v3.oas.annotations.parameters.RequestBody(
-            description = "Create news",
+            description = "Create a new news item",
             required = true,
             content = @Content(mediaType = "application/json",
                     examples = {@io.swagger.v3.oas.annotations.media.ExampleObject(
