@@ -1,13 +1,14 @@
 package com.anatoliydrake.NewsFeedManager.controllers;
 
 import com.anatoliydrake.NewsFeedManager.dto.NewsDto;
-import com.anatoliydrake.NewsFeedManager.entities.News;
 import com.anatoliydrake.NewsFeedManager.services.NewsCRUDService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,11 +26,20 @@ public class NewsController {
     }
 
     @GetMapping(path = "/{id}")
+    @Operation(summary = "Find news by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OK",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = NewsDto.class))),
+            @ApiResponse(responseCode = "404", description = "Not found",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(example = "{\"message\": \"News with ID 1 not found\"}")))
+    })
     public ResponseEntity<?> getById(@PathVariable Long id) {
         NewsDto newsDto = service.getById(id);
         if (newsDto == null) {
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Новость с ID " + id + " не найдена.");
+            response.put("message", "News with ID " + id + " not found");
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(newsDto, HttpStatus.OK);
@@ -59,7 +69,7 @@ public class NewsController {
                                     ]
                                     """
                     )
-            }, array = @ArraySchema(schema = @Schema(implementation = News.class)
+            }, array = @ArraySchema(schema = @Schema(implementation = NewsDto.class)
             )))
     public ResponseEntity<Collection<NewsDto>> getAllNews() {
         return new ResponseEntity<>(service.getAll(), HttpStatus.OK);
@@ -82,7 +92,7 @@ public class NewsController {
                                     }
                                     """
                     )
-            })) @RequestBody NewsDto newsDto) {
+                    })) @RequestBody NewsDto newsDto) {
         return new ResponseEntity<>(service.create(newsDto), HttpStatus.CREATED);
     }
 
@@ -90,7 +100,7 @@ public class NewsController {
     @Operation(summary = "Update news")
     @ApiResponse(responseCode = "200", description = "OK",
             content = @Content(mediaType = "application/json",
-            schema = @Schema(implementation = NewsDto.class)))
+                    schema = @Schema(implementation = NewsDto.class)))
     public ResponseEntity<NewsDto> updateNews(@io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Update an existent news",
             required = true,
@@ -100,16 +110,48 @@ public class NewsController {
     }
 
     @DeleteMapping(path = "/{id}")
+    @Operation(summary = "Delete news by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "No Content", content = @Content),
+            @ApiResponse(responseCode = "404", description = "Not found",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"News with ID 1 not found\"}")))
+    })
     public ResponseEntity<?> deleteNews(@PathVariable Long id) {
         if (service.getById(id) == null) {
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Новость с ID " + id + " не найдена.");
+            response.put("message", "News with ID " + id + " not found");
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
         service.deleteById(id);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @Operation(summary = "Get news by category")
+    @ApiResponse(responseCode = "200", description = "OK",
+            content = @Content(mediaType = "application/json", examples = {
+                    @io.swagger.v3.oas.annotations.media.ExampleObject(
+                            value = """
+                                    [
+                                      {
+                                        "id": 2,
+                                        "title": "Title of news 2",
+                                        "text": "Content of the news 2",
+                                        "date": "2024-05-01T12:00:00",
+                                        "categoryId": 3
+                                      },
+                                      {
+                                        "id": 4,
+                                        "title": "Title of news 4",
+                                        "text": "Content of the news 4",
+                                        "date": "2024-05-02T12:00:00",
+                                        "category": 3
+                                      }
+                                    ]
+                                    """
+                    )
+            }, array = @ArraySchema(schema = @Schema(implementation = NewsDto.class)
+            )))
     @GetMapping(path = "category/{id}")
     public ResponseEntity<Collection<NewsDto>> getNewsByCategoryId(@PathVariable Long id) {
         return new ResponseEntity<>(service.getAll().stream()
